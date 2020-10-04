@@ -28,7 +28,7 @@ func main() {
 
 	switch os.Args[1] {
 	case addCmd.Name():
-		subcommands.Add(*addCmd, configurator)
+		subcommands.Add(os.Args[2:], *addCmd, configurator)
 
 	default:
 		if len(os.Args) >= 2 {

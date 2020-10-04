@@ -3,14 +3,13 @@ package subcommands
 import (
 	"flag"
 	"fmt"
-	"os"
 
 	"github.com/adavidalbertson/gpair/internal"
 	"github.com/adavidalbertson/gpair/internal/config"
 )
 
-func Add(addCmd flag.FlagSet, configurator config.Configurator) {
-	err := addCmd.Parse(os.Args[2:])
+func Add(args []string, addCmd flag.FlagSet, configurator config.Configurator) {
+	err := addCmd.Parse(args)
 	if err != nil {
 		addCmd.Usage()
 		return

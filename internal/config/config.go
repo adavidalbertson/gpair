@@ -15,17 +15,22 @@ func newConfig() config {
 	}
 }
 
-type Configurator struct {
+type Configurator interface {
+	GetPairs(aliases ...string) ([]Pair, error)
+	AddPair(alias string, pair Pair) error
+}
+
+type configurator struct {
 	provider
 }
 
 func NewConfigurator() Configurator {
-	return Configurator{
+	return configurator{
 		&fileProvider{},
 	}
 }
 
-func (c Configurator) GetPairs(aliases ...string) ([]Pair, error) {
+func (c configurator) GetPairs(aliases ...string) ([]Pair, error) {
 	config, err := c.load()
 	if err != nil {
 		return nil, err
@@ -53,7 +58,7 @@ func (c Configurator) GetPairs(aliases ...string) ([]Pair, error) {
 	return pairs, nil
 }
 
-func (c Configurator) AddPair(alias string, pair Pair) error {
+func (c configurator) AddPair(alias string, pair Pair) error {
 	config, err := c.load()
 	if err != nil {
 		return err
