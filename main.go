@@ -1,27 +1,22 @@
 package main
 
 import (
+	"github.com/adavidalbertson/gpair/internal/config"
 	"flag"
 	"fmt"
 	"os"
 
 	"github.com/adavidalbertson/gpair/internal"
-	"github.com/adavidalbertson/gpair/subcommands"
+	"github.com/adavidalbertson/gpair/internal/subcommands"
 )
 
 func main() {
-	var alias, name, email string
-
-	flag.Usage = func() {
-		fmt.Println()
-	}
-
 	flag.BoolVar(&internal.Verbose, "v", false, "Enable verbose output")
 
 	addCmd := flag.NewFlagSet("add", flag.ExitOnError)
-	addCmd.StringVar(&alias, "alias", "", "A short name for the pair")
-	addCmd.StringVar(&name, "name", "", "The git username for the pair")
-	addCmd.StringVar(&email, "email", "", "The email for the pair")
+	addCmd.String("alias", "", "A short name for the pair")
+	addCmd.String("name", "", "The git username for the pair")
+	addCmd.String("email", "", "The email for the pair")
 	addCmd.BoolVar(&internal.Verbose, "v", false, "Enable verbose output")
 
 	if len(os.Args) < 2 {
@@ -29,19 +24,16 @@ func main() {
 		os.Exit(0)
 	}
 
+	configurator := config.NewConfigurator()
+
 	switch os.Args[1] {
 	case addCmd.Name():
-		err := addCmd.Parse(os.Args[2:])
-		if err != nil {
-			addCmd.Usage()
-			os.Exit(0)
-		}
-		subcommands.Add(*addCmd, alias, name, email)
+		subcommands.Add(*addCmd, configurator)
 
 	default:
 		if len(os.Args) >= 2 {
 			aliases := os.Args[1:]
-			pairs, err := internal.GetPairs(aliases...)
+			pairs, err := configurator.GetPairs(aliases...)
 			if err != nil {
 				fmt.Println(err.Error())
 			}

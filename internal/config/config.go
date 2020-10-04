@@ -1,22 +1,32 @@
-package internal
+package config
 
 import (
 	"fmt"
 	"strings"
 )
 
-// Pair represents a pairing partner
-type Pair struct {
-	Name  string `json:"name"`
-	Email string `json:"email"`
+type config struct {
+	Pairs map[string]Pair `json:"pairs"`
 }
 
-func (p Pair) String() string {
-	return fmt.Sprintf("Co-authored-by: %s <%s>", p.Name, p.Email)
+func newConfig() config {
+	return config{
+		Pairs: make(map[string]Pair),
+	}
 }
 
-func GetPairs(aliases ...string) ([]Pair, error) {
-	config, err := load()
+type Configurator struct {
+	provider
+}
+
+func NewConfigurator() Configurator {
+	return Configurator{
+		&fileProvider{},
+	}
+}
+
+func (c Configurator) GetPairs(aliases ...string) ([]Pair, error) {
+	config, err := c.load()
 	if err != nil {
 		return nil, err
 	}
@@ -43,15 +53,15 @@ func GetPairs(aliases ...string) ([]Pair, error) {
 	return pairs, nil
 }
 
-func AddPair(alias string, pair Pair) error {
-	config, err := load()
+func (c Configurator) AddPair(alias string, pair Pair) error {
+	config, err := c.load()
 	if err != nil {
 		return err
 	}
 
 	config.Pairs[alias] = pair
 
-	err = write(config)
+	err = c.save(config)
 	if err != nil {
 		return err
 	}

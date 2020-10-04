@@ -3,11 +3,23 @@ package subcommands
 import (
 	"flag"
 	"fmt"
+	"os"
 
 	"github.com/adavidalbertson/gpair/internal"
+	"github.com/adavidalbertson/gpair/internal/config"
 )
 
-func Add(addCmd flag.FlagSet, alias, name, email string) {
+func Add(addCmd flag.FlagSet, configurator config.Configurator) {
+	err := addCmd.Parse(os.Args[2:])
+	if err != nil {
+		addCmd.Usage()
+		return
+	}
+
+	alias := addCmd.Lookup("alias").Value.String()
+	name := addCmd.Lookup("name").Value.String()
+	email := addCmd.Lookup("email").Value.String()
+
 	internal.PrintVerbose("-alias='%s' -name='%s' -email='%s'\n", alias, name, email)
 
 	missingArgs := 0
@@ -38,8 +50,13 @@ func Add(addCmd flag.FlagSet, alias, name, email string) {
 		alias = name
 	}
 
-	addPair := internal.Pair{Name: name, Email: email}
-	err := internal.AddPair(alias, addPair)
+	if name == "" || email == "" {
+		addCmd.Usage()
+		return
+	}
+
+	addPair := config.Pair{Name: name, Email: email}
+	err = configurator.AddPair(alias, addPair)
 	if err != nil {
 		panic(err)
 	}
