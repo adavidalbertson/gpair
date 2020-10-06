@@ -5,6 +5,7 @@ import (
 )
 
 var Verbose bool
+var Help bool
 
 func PrintVerbose(format string, v ...interface{}) {
 	if Verbose {
