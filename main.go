@@ -1,17 +1,29 @@
 package main
 
 import (
-	"github.com/adavidalbertson/gpair/internal/config"
 	"flag"
 	"fmt"
 	"os"
+
+	"github.com/adavidalbertson/gpair/internal/config"
 
 	"github.com/adavidalbertson/gpair/internal"
 	"github.com/adavidalbertson/gpair/internal/subcommands"
 )
 
 func main() {
-	flag.BoolVar(&internal.Verbose, "v", false, "Enable verbose output")
+	help := flag.Bool("help", false, "Display usage information")
+	flag.BoolVar(help, "\nh", false, "Display usage information (shorthand)")
+	flag.BoolVar(&internal.Verbose, "verbose", false, "Enable verbose output")
+	flag.BoolVar(&internal.Verbose, "\nv", false, "Enable verbose output (shorthand)")
+	oldUsage := flag.Usage
+	flag.Usage = func() {
+		fmt.Println("gpair is a utility that makes it easier to share credit for collaboration using git.")
+		fmt.Println("It stores the contact info of your frequent collaborators and outputs a 'Co-author' clause for your git commit messages.")
+		fmt.Println("Run `gpair ALIAS` to retrieve the 'Co-Author' clause for the collaborator saved under 'ALIAS'.")
+		fmt.Println("To add a collaborator, use the 'add' subcommand. For information on using 'add', run `gpair add -h`.")
+		oldUsage()
+	}
 
 	addCmd := flag.NewFlagSet("add", flag.ExitOnError)
 	addCmd.String("alias", "", "A short name for the pair")
@@ -31,21 +43,22 @@ func main() {
 		subcommands.Add(os.Args[2:], *addCmd, configurator)
 
 	default:
-		if len(os.Args) >= 2 {
-			aliases := os.Args[1:]
-			pairs, err := configurator.GetPairs(aliases...)
-			if err != nil {
-				fmt.Println(err.Error())
-			}
+		flag.Parse()
 
-			for _, pair := range pairs {
-				fmt.Println(pair)
-			}
+		if len(os.Args) < 2 || *help {
+			flag.Usage()
 			os.Exit(0)
 		}
 
-		flag.Usage()
+		aliases := os.Args[1:]
+		pairs, err := configurator.GetPairs(aliases...)
+		if err != nil {
+			fmt.Println(err.Error())
+		}
 
+		for _, pair := range pairs {
+			fmt.Println(pair)
+		}
 	}
 
 	os.Exit(0)
