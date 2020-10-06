@@ -26,10 +26,21 @@ func main() {
 	}
 
 	addCmd := flag.NewFlagSet("add", flag.ExitOnError)
-	addCmd.String("alias", "", "A short name for the pair")
-	addCmd.String("name", "", "The git username for the pair")
-	addCmd.String("email", "", "The email for the pair")
-	addCmd.BoolVar(&internal.Verbose, "v", false, "Enable verbose output")
+	addCmd.String("alias", "", "A short name for the collaborator, used in the `gpair ALIAS` command")
+	addCmd.String("name", "", "The git username for the collaborator")
+	addCmd.String("email", "", "The email for the collaborator")
+	addCmd.Bool("help", false, "Display usage information")
+	addCmd.Bool("h", false, "\nDisplay usage information (shorthand)")
+	addCmd.BoolVar(&internal.Verbose, "verbose", false, "Enable verbose output")
+	addCmd.BoolVar(&internal.Verbose, "v", false, "\nEnable verbose output (shorthand)")
+	oldAddUsage := addCmd.Usage
+	addCmd.Usage = func() {
+		fmt.Println("The 'add' subcommand is used to save your collaborators' git contact info.")
+		fmt.Println("It can take positional arguments in the following order: `gpair add [ALIAS] USERNAME EMAIL`")
+		fmt.Println("The 'ALIAS' field is optional. If omitted, it will be the same as the username.")
+		fmt.Println("You can also set fields explicitly as shown below.")
+		oldAddUsage()
+	}
 
 	if len(os.Args) < 2 {
 		flag.Usage()
