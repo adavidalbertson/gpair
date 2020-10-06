@@ -67,3 +67,45 @@ func TestParseAddArgs(t *testing.T) {
 		})
 	}
 }
+
+func TestAdd(t *testing.T) {
+	type args struct {
+		alias string
+		name  string
+		email string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{"happy path", args{"happy", "happypath", "happyemail"}, false},
+		{"missing name", args{"sad", "", "sademail"}, true},
+		{"missing email", args{"sad", "sadpath", ""}, true},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			configurator := mockConfigurator{}
+
+			err := Add(tt.args.alias, tt.args.name, tt.args.email, &configurator)
+
+			if err != nil != tt.wantErr {
+				t.Errorf("Add() error = %v, wantErr %v", err, tt.wantErr)
+			}
+
+			if err == nil {
+				if configurator.alias != tt.args.alias {
+					t.Errorf("got alias %s, want %s", configurator.alias, tt.args.alias)
+				}
+
+				if configurator.pair.Name != tt.args.name {
+					t.Errorf("got name %s, want %s", configurator.pair.Name, tt.args.name)
+				}
+
+				if configurator.pair.Email != tt.args.email {
+					t.Errorf("got alias %s, want %s", configurator.pair.Email, tt.args.email)
+				}
+			}
+		})
+	}
+}
