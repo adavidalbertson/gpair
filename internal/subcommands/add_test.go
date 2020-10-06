@@ -25,6 +25,10 @@ func (mc *mockConfigurator) AddPair(alias string, pair config.Pair) error {
 	return nil
 }
 
+func (mc *mockConfigurator) DeletePairs(aliases ...string) ([]string, error) {
+	return nil, nil
+}
+
 func TestParseAddArgs(t *testing.T) {
 	tests := []struct {
 		name      string

@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/adavidalbertson/gpair/internal/config"
 
@@ -50,6 +51,26 @@ func main() {
 		err = subcommands.Add(alias, name, email, configurator)
 		if err != nil {
 			panic(err)
+		}
+
+	case subcommands.RemoveCmd.Name():
+		if internal.Help {
+			subcommands.RemoveCmd.Usage()
+			os.Exit(0)
+		}
+
+		aliases, err := subcommands.ParseRemoveArgs(os.Args[2:])
+		if err != nil {
+			panic(err)
+		}
+
+		deleted, err := configurator.DeletePairs(aliases...)
+		if err != nil {
+			fmt.Println(err.Error())
+		}
+
+		if len(deleted) > 0 {
+			fmt.Printf("Successfully deleted pairs '%s'\n", strings.Join(deleted, "', '"))
 		}
 
 	default:

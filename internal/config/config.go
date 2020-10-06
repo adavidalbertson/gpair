@@ -18,6 +18,7 @@ func newConfig() config {
 type Configurator interface {
 	GetPairs(aliases ...string) ([]Pair, error)
 	AddPair(alias string, pair Pair) error
+	DeletePairs(aliases ...string) ([]string, error)
 }
 
 type configurator struct {
@@ -40,8 +41,7 @@ func (c configurator) GetPairs(aliases ...string) ([]Pair, error) {
 	var missing []string
 
 	for _, alias := range aliases {
-		pair, ok := config.Pairs[alias]
-		if ok {
+		if pair, ok := config.Pairs[alias]; ok {
 			pairs = append(pairs, pair)
 		} else {
 			missing = append(missing, alias)
@@ -72,4 +72,37 @@ func (c configurator) AddPair(alias string, pair Pair) error {
 	}
 
 	return nil
+}
+
+func (c configurator) DeletePairs(aliases ...string) ([]string, error) {
+	config, err := c.load()
+	if err != nil {
+		return nil, err
+	}
+
+	var missing []string
+	var deleted []string
+
+	for _, alias := range aliases {
+		if _, exists := config.Pairs[alias]; exists {
+			delete(config.Pairs, alias)
+			deleted = append(deleted, alias)
+		} else {
+			missing = append(missing, alias)
+		}
+	}
+
+	err = c.save(config)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(missing) == 1 {
+		return deleted, fmt.Errorf("No pairing partner exists for the alias '%s'", missing[0])
+	}
+	if len(missing) > 1 {
+		return deleted, fmt.Errorf("No pairing partners exist for aliases '%s'", strings.Join(missing, "', '"))
+	}
+
+	return deleted, nil
 }
