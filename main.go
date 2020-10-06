@@ -11,9 +11,11 @@ import (
 	"github.com/adavidalbertson/gpair/internal/subcommands"
 )
 
-func main() {
-	help := flag.Bool("help", false, "Display usage information")
-	flag.BoolVar(help, "\nh", false, "Display usage information (shorthand)")
+var help bool
+
+func init() {
+	flag.BoolVar(&help, "help", false, "Display usage information")
+	flag.BoolVar(&help, "\nh", false, "Display usage information (shorthand)")
 	flag.BoolVar(&internal.Verbose, "verbose", false, "Enable verbose output")
 	flag.BoolVar(&internal.Verbose, "\nv", false, "Enable verbose output (shorthand)")
 	oldUsage := flag.Usage
@@ -24,24 +26,9 @@ func main() {
 		fmt.Println("To add a collaborator, use the 'add' subcommand. For information on using 'add', run `gpair add -h`.")
 		oldUsage()
 	}
+}
 
-	addCmd := flag.NewFlagSet("add", flag.ExitOnError)
-	addCmd.String("alias", "", "A short name for the collaborator, used in the `gpair ALIAS` command")
-	addCmd.String("name", "", "The git username for the collaborator")
-	addCmd.String("email", "", "The email for the collaborator")
-	addCmd.Bool("help", false, "Display usage information")
-	addCmd.Bool("h", false, "\nDisplay usage information (shorthand)")
-	addCmd.BoolVar(&internal.Verbose, "verbose", false, "Enable verbose output")
-	addCmd.BoolVar(&internal.Verbose, "v", false, "\nEnable verbose output (shorthand)")
-	oldAddUsage := addCmd.Usage
-	addCmd.Usage = func() {
-		fmt.Println("The 'add' subcommand is used to save your collaborators' git contact info.")
-		fmt.Println("It can take positional arguments in the following order: `gpair add [ALIAS] USERNAME EMAIL`")
-		fmt.Println("The 'ALIAS' field is optional. If omitted, it will be the same as the username.")
-		fmt.Println("You can also set fields explicitly as shown below.")
-		oldAddUsage()
-	}
-
+func main() {
 	if len(os.Args) < 2 {
 		flag.Usage()
 		os.Exit(0)
@@ -50,13 +37,21 @@ func main() {
 	configurator := config.NewConfigurator()
 
 	switch os.Args[1] {
-	case addCmd.Name():
-		subcommands.Add(os.Args[2:], *addCmd, configurator)
+	case subcommands.AddCmd.Name():
+		alias, name, email, err := subcommands.ParseAddArgs(os.Args[2:])
+		if err != nil {
+			panic(err)
+		}
+
+		err = subcommands.Add(alias, name, email, configurator)
+		if err != nil {
+			panic(err)
+		}
 
 	default:
 		flag.Parse()
 
-		if len(os.Args) < 2 || *help {
+		if len(os.Args) < 2 || help {
 			flag.Usage()
 			os.Exit(0)
 		}
