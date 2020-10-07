@@ -31,7 +31,7 @@ func TestParseAddArgs(t *testing.T) {
 			AddCmd.String("name", "", "The git username for the collaborator")
 			AddCmd.String("email", "", "The email for the collaborator")
 
-			gotAlias, gotName, gotEmail, err := ParseAddArgs(strings.Split(tt.args, " "))
+			gotAlias, gotName, gotEmail, err := parseAddArgs(strings.Split(tt.args, " "))
 
 			if err != nil {
 				t.Errorf("subcommands.ParseAddArgs() error = %v, wantErr false", err)
@@ -72,7 +72,7 @@ func TestAdd(t *testing.T) {
 
 			configurator := config.NewMockConfigurator(config.NewConfig())
 
-			err := Add(tt.args.alias, tt.args.name, tt.args.email, configurator)
+			err := add(tt.args.alias, tt.args.name, tt.args.email, configurator)
 
 			if err != nil != tt.wantErr {
 				t.Errorf("Add() error = %v, wantErr %v", err, tt.wantErr)

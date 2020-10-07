@@ -3,11 +3,15 @@ package subcommands
 import (
 	"flag"
 	"fmt"
+	"os"
 	"strings"
+
+	"github.com/adavidalbertson/gpair/internal/config"
 
 	"github.com/adavidalbertson/gpair/internal"
 )
 
+// RemoveCmd is the flagset for the 'remove' subcommand
 var RemoveCmd flag.FlagSet
 
 func init() {
@@ -24,10 +28,33 @@ func init() {
 	}
 }
 
-func ParseRemoveArgs(args []string) (aliases []string, err error) {
+func parseRemoveArgs(args []string) (aliases []string, err error) {
 	err = RemoveCmd.Parse(args)
 
 	internal.PrintVerbose("Got aliases: %s", strings.Join(RemoveCmd.Args(), ", "))
 
 	return RemoveCmd.Args(), err
+}
+
+// Remove is the function executed by the 'remove' subcommand
+// It removes the collaborators with the aliases given in the args
+func Remove() {
+	if internal.Help {
+		RemoveCmd.Usage()
+		os.Exit(0)
+	}
+
+	aliases, err := parseRemoveArgs(os.Args[2:])
+	if err != nil {
+		panic(err)
+	}
+
+	deleted, err := config.NewConfigurator().DeleteCollaborators(aliases...)
+	if err != nil {
+		fmt.Println(err.Error())
+	}
+
+	if len(deleted) > 0 {
+		fmt.Printf("Successfully deleted collaborators '%s'\n", strings.Join(deleted, "', '"))
+	}
 }

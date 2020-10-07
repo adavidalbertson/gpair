@@ -3,11 +3,13 @@ package subcommands
 import (
 	"flag"
 	"fmt"
+	"os"
 
 	"github.com/adavidalbertson/gpair/internal"
 	"github.com/adavidalbertson/gpair/internal/config"
 )
 
+// AddCmd is the flagset for the 'add' subcommand
 var AddCmd flag.FlagSet
 
 func init() {
@@ -29,7 +31,7 @@ func init() {
 	}
 }
 
-func ParseAddArgs(args []string) (alias, name, email string, err error) {
+func parseAddArgs(args []string) (alias, name, email string, err error) {
 	err = AddCmd.Parse(args)
 	if err != nil {
 		return
@@ -72,7 +74,7 @@ func ParseAddArgs(args []string) (alias, name, email string, err error) {
 	return
 }
 
-func Add(alias, name, email string, configurator config.Configurator) error {
+func add(alias, name, email string, configurator config.Configurator) error {
 	if name == "" || email == "" {
 		AddCmd.Usage()
 		return fmt.Errorf("name and email are required arguments")
@@ -87,4 +89,23 @@ func Add(alias, name, email string, configurator config.Configurator) error {
 	fmt.Printf("Added collaborator '%s': %s\n", alias, addCollaborator)
 
 	return nil
+}
+
+// Add is the function executed for the 'add' subcommand
+// It saves a collaborator defined by the given args
+func Add() {
+	if internal.Help {
+		AddCmd.Usage()
+		os.Exit(0)
+	}
+
+	alias, name, email, err := parseAddArgs(os.Args[2:])
+	if err != nil {
+		panic(err)
+	}
+
+	err = add(alias, name, email, config.NewConfigurator())
+	if err != nil {
+		panic(err)
+	}
 }
