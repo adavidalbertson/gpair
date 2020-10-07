@@ -2,32 +2,12 @@ package subcommands
 
 import (
 	"flag"
+	"reflect"
 	"strings"
 	"testing"
 
 	"github.com/adavidalbertson/gpair/internal/config"
 )
-
-type mockConfigurator struct {
-	collaborators []config.Collaborator
-	collaborator  config.Collaborator
-	alias         string
-}
-
-func (mc *mockConfigurator) GetCollaborators(aliases ...string) ([]config.Collaborator, error) {
-	return mc.collaborators, nil
-}
-
-func (mc *mockConfigurator) AddCollaborator(alias string, collaborator config.Collaborator) error {
-	mc.collaborators = []config.Collaborator{collaborator}
-	mc.collaborator = collaborator
-	mc.alias = alias
-	return nil
-}
-
-func (mc *mockConfigurator) DeleteCollaborators(aliases ...string) ([]string, error) {
-	return nil, nil
-}
 
 func TestParseAddArgs(t *testing.T) {
 	tests := []struct {
@@ -89,25 +69,23 @@ func TestAdd(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			configurator := mockConfigurator{}
 
-			err := Add(tt.args.alias, tt.args.name, tt.args.email, &configurator)
+			configurator := config.NewMockConfigurator(config.NewConfig())
+
+			err := Add(tt.args.alias, tt.args.name, tt.args.email, configurator)
 
 			if err != nil != tt.wantErr {
 				t.Errorf("Add() error = %v, wantErr %v", err, tt.wantErr)
 			}
 
 			if err == nil {
-				if configurator.alias != tt.args.alias {
-					t.Errorf("got alias %s, want %s", configurator.alias, tt.args.alias)
-				}
+				wantConfig := config.NewConfig()
+				wantConfig.Collaborators[tt.args.alias] = config.Collaborator{Name: tt.args.name, Email: tt.args.email}
 
-				if configurator.collaborator.Name != tt.args.name {
-					t.Errorf("got name %s, want %s", configurator.collaborator.Name, tt.args.name)
-				}
+				gotConfig := configurator.GetConfig()
 
-				if configurator.collaborator.Email != tt.args.email {
-					t.Errorf("got alias %s, want %s", configurator.collaborator.Email, tt.args.email)
+				if !reflect.DeepEqual(gotConfig, wantConfig) {
+					t.Errorf("config = %v, want %v", gotConfig, wantConfig)
 				}
 			}
 		})

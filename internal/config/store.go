@@ -9,18 +9,20 @@ import (
 	"github.com/adavidalbertson/gpair/internal"
 )
 
-type provider interface {
-	load() (config, error)
-	save(config) error
+// store represents some persistent storage for config
+type store interface {
+	load() (Config, error)
+	save(Config) error
 }
 
-type fileProvider struct {
+// fileStore is an implementation of store that reads from and writes to a file (~/.gpair/config.json)
+type fileStore struct {
 	path string
 }
 
-func (fp *fileProvider) configPath() (string, error) {
-	if fp.path != "" {
-		return fp.path, nil
+func (fs *fileStore) configPath() (string, error) {
+	if fs.path != "" {
+		return fs.path, nil
 	}
 
 	homeDir, err := os.UserHomeDir()
@@ -46,12 +48,12 @@ func (fp *fileProvider) configPath() (string, error) {
 		defer file.Close()
 	}
 
-	fp.path = configPath
-	return fp.path, nil
+	fs.path = configPath
+	return fs.path, nil
 }
 
-func (fp *fileProvider) fileExists() (bool, error) {
-	path, err := fp.configPath()
+func (fs *fileStore) fileExists() (bool, error) {
+	path, err := fs.configPath()
 	if err != nil {
 		return false, err
 	}
@@ -67,8 +69,8 @@ func (fp *fileProvider) fileExists() (bool, error) {
 	return true, nil
 }
 
-func (fp *fileProvider) createBackup() error {
-	exists, err := fp.fileExists()
+func (fs *fileStore) createBackup() error {
+	exists, err := fs.fileExists()
 	if err != nil {
 		return err
 	}
@@ -77,7 +79,7 @@ func (fp *fileProvider) createBackup() error {
 		return nil
 	}
 
-	path, err := fp.configPath()
+	path, err := fs.configPath()
 	if err != nil {
 		return err
 	}
@@ -90,8 +92,8 @@ func (fp *fileProvider) createBackup() error {
 	return nil
 }
 
-func (fp *fileProvider) restoreBackup() error {
-	path, err := fp.configPath()
+func (fs *fileStore) restoreBackup() error {
+	path, err := fs.configPath()
 	if err != nil {
 		return err
 	}
@@ -104,56 +106,56 @@ func (fp *fileProvider) restoreBackup() error {
 	return nil
 }
 
-func (fp *fileProvider) load() (config, error) {
-	path, err := fp.configPath()
+func (fs *fileStore) load() (Config, error) {
+	path, err := fs.configPath()
 	if err != nil {
-		return newConfig(), err
+		return NewConfig(), err
 	}
 
 	jsonFile, err := os.Open(path)
 	if err != nil {
-		return newConfig(), err
+		return NewConfig(), err
 	}
 	defer jsonFile.Close()
 
 	jsonBytes, err := ioutil.ReadAll(jsonFile)
 	if err != nil {
-		return newConfig(), err
+		return NewConfig(), err
 	}
 
 	if len(jsonBytes) == 0 {
-		return newConfig(), nil
+		return NewConfig(), nil
 	}
 
-	var config config
+	var config Config
 	// Since the config file is expected to be small, Marshal/Unmarshal should be adequate
 	err = json.Unmarshal(jsonBytes, &config)
 	if err != nil {
-		return newConfig(), err
+		return NewConfig(), err
 	}
 
 	return config, nil
 }
 
-func (fp *fileProvider) save(config config) error {
+func (fs *fileStore) save(config Config) error {
 	jsonBytes, err := json.Marshal(config)
 	if err != nil {
 		return err
 	}
 
-	err = fp.createBackup()
+	err = fs.createBackup()
 	if err != nil {
 		return err
 	}
 
-	path, err := fp.configPath()
+	path, err := fs.configPath()
 	if err != nil {
 		return err
 	}
 
 	err = ioutil.WriteFile(path, jsonBytes, 0700)
 	if err != nil {
-		err = fp.restoreBackup()
+		err = fs.restoreBackup()
 		if err != nil {
 			return err
 		}

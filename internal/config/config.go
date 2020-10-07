@@ -1,15 +1,16 @@
 package config
 
-type config struct {
+type Config struct {
 	Collaborators map[string]Collaborator `json:"collaborators"`
 }
 
-func newConfig() config {
-	return config{
+func NewConfig() Config {
+	return Config{
 		Collaborators: make(map[string]Collaborator),
 	}
 }
 
+// Configurator is an abstraction that allows operations to a persisted config
 type Configurator interface {
 	GetCollaborators(aliases ...string) ([]Collaborator, error)
 	AddCollaborator(alias string, collaborator Collaborator) error
@@ -17,12 +18,13 @@ type Configurator interface {
 }
 
 type configurator struct {
-	provider
+	store
 }
 
+// NewConfigurator returns a configurator that persists config to disk
 func NewConfigurator() Configurator {
 	return configurator{
-		&fileProvider{},
+		&fileStore{},
 	}
 }
 
