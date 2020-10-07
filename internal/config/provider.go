@@ -15,12 +15,12 @@ type provider interface {
 }
 
 type fileProvider struct {
-	absoluteConfigPath string
+	path string
 }
 
 func (fp *fileProvider) configPath() (string, error) {
-	if fp.absoluteConfigPath != "" {
-		return fp.absoluteConfigPath, nil
+	if fp.path != "" {
+		return fp.path, nil
 	}
 
 	homeDir, err := os.UserHomeDir()
@@ -28,11 +28,7 @@ func (fp *fileProvider) configPath() (string, error) {
 		return "", err
 	}
 
-	configDirPath, err := filepath.Abs(filepath.Join(homeDir, ".gpair"))
-	if err != nil {
-		return "", err
-	}
-
+	configDirPath := filepath.Join(homeDir, ".gpair")
 	if _, err = os.Stat(configDirPath); os.IsNotExist(err) {
 		err := os.Mkdir(configDirPath, 0700)
 		if err != nil {
@@ -41,7 +37,6 @@ func (fp *fileProvider) configPath() (string, error) {
 	}
 
 	configPath := filepath.Join(configDirPath, "config.json")
-
 	if _, err = os.Stat(configPath); os.IsNotExist(err) {
 		internal.PrintVerbose("Creating new config at %s", configPath)
 		file, err := os.Create(configPath)
@@ -51,8 +46,8 @@ func (fp *fileProvider) configPath() (string, error) {
 		defer file.Close()
 	}
 
-	fp.absoluteConfigPath = configPath
-	return fp.absoluteConfigPath, nil
+	fp.path = configPath
+	return fp.path, nil
 }
 
 func (fp *fileProvider) fileExists() (bool, error) {
