@@ -9,23 +9,23 @@ import (
 )
 
 type mockConfigurator struct {
-	pairs []config.Pair
-	pair  config.Pair
-	alias string
+	collaborators []config.Collaborator
+	collaborator  config.Collaborator
+	alias         string
 }
 
-func (mc *mockConfigurator) GetPairs(aliases ...string) ([]config.Pair, error) {
-	return mc.pairs, nil
+func (mc *mockConfigurator) GetCollaborators(aliases ...string) ([]config.Collaborator, error) {
+	return mc.collaborators, nil
 }
 
-func (mc *mockConfigurator) AddPair(alias string, pair config.Pair) error {
-	mc.pairs = []config.Pair{pair}
-	mc.pair = pair
+func (mc *mockConfigurator) AddCollaborator(alias string, collaborator config.Collaborator) error {
+	mc.collaborators = []config.Collaborator{collaborator}
+	mc.collaborator = collaborator
 	mc.alias = alias
 	return nil
 }
 
-func (mc *mockConfigurator) DeletePairs(aliases ...string) ([]string, error) {
+func (mc *mockConfigurator) DeleteCollaborators(aliases ...string) ([]string, error) {
 	return nil, nil
 }
 
@@ -47,9 +47,9 @@ func TestParseAddArgs(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			AddCmd = *flag.NewFlagSet("add", flag.ExitOnError)
-			AddCmd.String("alias", "", "A short name for the pair")
-			AddCmd.String("name", "", "The git username for the pair")
-			AddCmd.String("email", "", "The email for the pair")
+			AddCmd.String("alias", "", "A short name for the collaborator")
+			AddCmd.String("name", "", "The git username for the collaborator")
+			AddCmd.String("email", "", "The email for the collaborator")
 
 			gotAlias, gotName, gotEmail, err := ParseAddArgs(strings.Split(tt.args, " "))
 
@@ -102,12 +102,12 @@ func TestAdd(t *testing.T) {
 					t.Errorf("got alias %s, want %s", configurator.alias, tt.args.alias)
 				}
 
-				if configurator.pair.Name != tt.args.name {
-					t.Errorf("got name %s, want %s", configurator.pair.Name, tt.args.name)
+				if configurator.collaborator.Name != tt.args.name {
+					t.Errorf("got name %s, want %s", configurator.collaborator.Name, tt.args.name)
 				}
 
-				if configurator.pair.Email != tt.args.email {
-					t.Errorf("got alias %s, want %s", configurator.pair.Email, tt.args.email)
+				if configurator.collaborator.Email != tt.args.email {
+					t.Errorf("got alias %s, want %s", configurator.collaborator.Email, tt.args.email)
 				}
 			}
 		})

@@ -6,19 +6,19 @@ import (
 )
 
 type config struct {
-	Pairs map[string]Pair `json:"pairs"`
+	Collaborators map[string]Collaborator `json:"collaborators"`
 }
 
 func newConfig() config {
 	return config{
-		Pairs: make(map[string]Pair),
+		Collaborators: make(map[string]Collaborator),
 	}
 }
 
 type Configurator interface {
-	GetPairs(aliases ...string) ([]Pair, error)
-	AddPair(alias string, pair Pair) error
-	DeletePairs(aliases ...string) ([]string, error)
+	GetCollaborators(aliases ...string) ([]Collaborator, error)
+	AddCollaborator(alias string, collaborator Collaborator) error
+	DeleteCollaborators(aliases ...string) ([]string, error)
 }
 
 type configurator struct {
@@ -31,40 +31,40 @@ func NewConfigurator() Configurator {
 	}
 }
 
-func (c configurator) GetPairs(aliases ...string) ([]Pair, error) {
+func (c configurator) GetCollaborators(aliases ...string) ([]Collaborator, error) {
 	config, err := c.load()
 	if err != nil {
 		return nil, err
 	}
 
-	var pairs []Pair
+	var collaborators []Collaborator
 	var missing []string
 
 	for _, alias := range aliases {
-		if pair, ok := config.Pairs[alias]; ok {
-			pairs = append(pairs, pair)
+		if collaborator, ok := config.Collaborators[alias]; ok {
+			collaborators = append(collaborators, collaborator)
 		} else {
 			missing = append(missing, alias)
 		}
 	}
 
 	if len(missing) == 1 {
-		return pairs, fmt.Errorf("No pairing partner exists for the alias '%s'", missing[0])
+		return collaborators, fmt.Errorf("No collaborator exists for the alias '%s'", missing[0])
 	}
 	if len(missing) > 1 {
-		return pairs, fmt.Errorf("No pairing partners exist for aliases '%s'", strings.Join(missing, "', '"))
+		return collaborators, fmt.Errorf("No collaborators exist for aliases '%s'", strings.Join(missing, "', '"))
 	}
 
-	return pairs, nil
+	return collaborators, nil
 }
 
-func (c configurator) AddPair(alias string, pair Pair) error {
+func (c configurator) AddCollaborator(alias string, collaborator Collaborator) error {
 	config, err := c.load()
 	if err != nil {
 		return err
 	}
 
-	config.Pairs[alias] = pair
+	config.Collaborators[alias] = collaborator
 
 	err = c.save(config)
 	if err != nil {
@@ -74,7 +74,7 @@ func (c configurator) AddPair(alias string, pair Pair) error {
 	return nil
 }
 
-func (c configurator) DeletePairs(aliases ...string) ([]string, error) {
+func (c configurator) DeleteCollaborators(aliases ...string) ([]string, error) {
 	config, err := c.load()
 	if err != nil {
 		return nil, err
@@ -84,8 +84,8 @@ func (c configurator) DeletePairs(aliases ...string) ([]string, error) {
 	var deleted []string
 
 	for _, alias := range aliases {
-		if _, exists := config.Pairs[alias]; exists {
-			delete(config.Pairs, alias)
+		if _, exists := config.Collaborators[alias]; exists {
+			delete(config.Collaborators, alias)
 			deleted = append(deleted, alias)
 		} else {
 			missing = append(missing, alias)
@@ -98,10 +98,10 @@ func (c configurator) DeletePairs(aliases ...string) ([]string, error) {
 	}
 
 	if len(missing) == 1 {
-		return deleted, fmt.Errorf("No pairing partner exists for the alias '%s'", missing[0])
+		return deleted, fmt.Errorf("No collaborator exists for the alias '%s'", missing[0])
 	}
 	if len(missing) > 1 {
-		return deleted, fmt.Errorf("No pairing partners exist for aliases '%s'", strings.Join(missing, "', '"))
+		return deleted, fmt.Errorf("No collaborators exist for aliases '%s'", strings.Join(missing, "', '"))
 	}
 
 	return deleted, nil

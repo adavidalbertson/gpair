@@ -64,13 +64,13 @@ func main() {
 			panic(err)
 		}
 
-		deleted, err := configurator.DeletePairs(aliases...)
+		deleted, err := configurator.DeleteCollaborators(aliases...)
 		if err != nil {
 			fmt.Println(err.Error())
 		}
 
 		if len(deleted) > 0 {
-			fmt.Printf("Successfully deleted pairs '%s'\n", strings.Join(deleted, "', '"))
+			fmt.Printf("Successfully deleted collaborators '%s'\n", strings.Join(deleted, "', '"))
 		}
 
 	default:
@@ -82,13 +82,13 @@ func main() {
 		}
 
 		aliases := os.Args[1:]
-		pairs, err := configurator.GetPairs(aliases...)
+		collaborators, err := configurator.GetCollaborators(aliases...)
 		if err != nil {
 			fmt.Println(err.Error())
 		}
 
-		for _, pair := range pairs {
-			fmt.Println(pair)
+		for _, collaborator := range collaborators {
+			fmt.Println(collaborator)
 		}
 	}
 
