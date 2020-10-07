@@ -1,10 +1,5 @@
 package config
 
-import (
-	"fmt"
-	"strings"
-)
-
 type config struct {
 	Collaborators map[string]Collaborator `json:"collaborators"`
 }
@@ -48,14 +43,7 @@ func (c configurator) GetCollaborators(aliases ...string) ([]Collaborator, error
 		}
 	}
 
-	if len(missing) == 1 {
-		return collaborators, fmt.Errorf("No collaborator exists for the alias '%s'", missing[0])
-	}
-	if len(missing) > 1 {
-		return collaborators, fmt.Errorf("No collaborators exist for aliases '%s'", strings.Join(missing, "', '"))
-	}
-
-	return collaborators, nil
+	return collaborators, ErrMissingCollaborator(missing)
 }
 
 func (c configurator) AddCollaborator(alias string, collaborator Collaborator) error {
@@ -97,12 +85,5 @@ func (c configurator) DeleteCollaborators(aliases ...string) ([]string, error) {
 		return nil, err
 	}
 
-	if len(missing) == 1 {
-		return deleted, fmt.Errorf("No collaborator exists for the alias '%s'", missing[0])
-	}
-	if len(missing) > 1 {
-		return deleted, fmt.Errorf("No collaborators exist for aliases '%s'", strings.Join(missing, "', '"))
-	}
-
-	return deleted, nil
+	return deleted, ErrMissingCollaborator(missing)
 }
