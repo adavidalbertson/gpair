@@ -6,6 +6,8 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/pkg/errors"
+
 	"github.com/adavidalbertson/gpair/internal"
 )
 
@@ -27,23 +29,24 @@ func (fs *fileStore) configPath() (string, error) {
 
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
-		return "", err
+		return "", errors.Wrap(err, "failed to locate home directory")
 	}
 
 	configDirPath := filepath.Join(homeDir, ".gpair")
 	if _, err = os.Stat(configDirPath); os.IsNotExist(err) {
+		internal.PrintVerbose("Creating new config directory at %s", configDirPath)
 		err := os.Mkdir(configDirPath, 0700)
 		if err != nil {
-			return "", err
+			return "", NewErrSaveFailure(err, configDirPath)
 		}
 	}
 
 	configPath := filepath.Join(configDirPath, "config.json")
 	if _, err = os.Stat(configPath); os.IsNotExist(err) {
-		internal.PrintVerbose("Creating new config at %s", configPath)
+		internal.PrintVerbose("Creating new config file at %s", configPath)
 		file, err := os.Create(configPath)
 		if err != nil {
-			return "", err
+			return "", NewErrSaveFailure(err, configPath)
 		}
 		defer file.Close()
 	}
@@ -63,7 +66,12 @@ func (fs *fileStore) fileExists() (bool, error) {
 		if os.IsNotExist(err) {
 			return false, nil
 		}
-		return false, err
+		
+		if os.IsPermission(err) {
+			return false, NewErrSaveFailure(err, path)
+		}
+
+		return false, errors.Wrapf(err, "failed to determine existence of config file at %s", path)
 	}
 
 	return true, nil
@@ -86,7 +94,7 @@ func (fs *fileStore) createBackup() error {
 
 	err = os.Rename(path, path+".bak")
 	if err != nil {
-		return err
+		return errors.Wrap(err, "failed to create config file backup")
 	}
 
 	return nil
@@ -100,7 +108,7 @@ func (fs *fileStore) restoreBackup() error {
 
 	err = os.Rename(path+".bak", path)
 	if err != nil {
-		return err
+		return errors.Wrap(err, "failed to restore config file backup")
 	}
 
 	return nil
@@ -114,13 +122,25 @@ func (fs *fileStore) load() (Config, error) {
 
 	jsonFile, err := os.Open(path)
 	if err != nil {
-		return NewConfig(), err
+		err = fs.createBackup()
+		if err != nil {
+			return NewConfig(), err
+		}
+
+		internal.PrintVerbose("Failed to open config file at %s. Starting a new config file. Original has been moved to %s.bak", path, path)
+		return NewConfig(), nil
 	}
 	defer jsonFile.Close()
 
 	jsonBytes, err := ioutil.ReadAll(jsonFile)
 	if err != nil {
-		return NewConfig(), err
+		err = fs.createBackup()
+		if err != nil {
+			return NewConfig(), err
+		}
+
+		internal.PrintVerbose("Failed to parse config file at %s. Starting a new config file. Original has been moved to %s.bak", path, path)
+		return NewConfig(), nil
 	}
 
 	if len(jsonBytes) == 0 {
@@ -131,7 +151,13 @@ func (fs *fileStore) load() (Config, error) {
 	// Since the config file is expected to be small, Marshal/Unmarshal should be adequate
 	err = json.Unmarshal(jsonBytes, &config)
 	if err != nil {
-		return NewConfig(), err
+		err = fs.createBackup()
+		if err != nil {
+			return NewConfig(), err
+		}
+
+		internal.PrintVerbose("Failed to parse config file at %s. Starting a new config file. Original has been moved to %s.bak", path, path)
+		return NewConfig(), nil
 	}
 
 	return config, nil
@@ -159,6 +185,7 @@ func (fs *fileStore) save(config Config) error {
 		if err != nil {
 			return err
 		}
+		internal.PrintVerbose("Failed to save config, backup has been restored.")
 	}
 
 	return nil

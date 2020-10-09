@@ -15,6 +15,8 @@ func (ims *inMemoryStore) save(conf Config) error {
 	return nil
 }
 
+// MockConfigurator is a configurator that allows direct access to its Config
+// For testing purposes only
 type MockConfigurator struct {
 	configurator
 }
@@ -29,6 +31,8 @@ func NewMockConfigurator(conf Config) MockConfigurator {
 	}
 }
 
+// GetConfig returns the Config held by a MockConfigurator
+// For testing purposes only
 func (mc *MockConfigurator) GetConfig() Config {
 	conf, _ := mc.load()
 	return conf

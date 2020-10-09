@@ -75,6 +75,11 @@ func parseAddArgs(args []string) (alias, name, email string, err error) {
 }
 
 func add(alias, name, email string, configurator config.Configurator) error {
+	if internal.Help {
+		AddCmd.Usage()
+		os.Exit(0)
+	}
+
 	if name == "" || email == "" {
 		AddCmd.Usage()
 		return fmt.Errorf("name and email are required arguments")
@@ -94,11 +99,6 @@ func add(alias, name, email string, configurator config.Configurator) error {
 // Add is the function executed for the 'add' subcommand
 // It saves a collaborator defined by the given args
 func Add() {
-	if internal.Help {
-		AddCmd.Usage()
-		os.Exit(0)
-	}
-
 	alias, name, email, err := parseAddArgs(os.Args[2:])
 	if err != nil {
 		panic(err)
@@ -106,6 +106,11 @@ func Add() {
 
 	err = add(alias, name, email, config.NewConfigurator())
 	if err != nil {
+		if esf, ok := err.(*config.ErrSaveFailure); ok {
+			fmt.Printf("Failed to create config file at %s. Make sure appropriate permissions are set.\n", esf.Path)
+			os.Exit(0)
+		}
+
 		panic(err)
 	}
 }
