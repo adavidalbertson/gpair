@@ -1,6 +1,7 @@
 package subcommands
 
 import (
+	"github.com/adavidalbertson/gpair/internal/git"
 	"flag"
 	"fmt"
 	"os"
@@ -53,4 +54,6 @@ func Pair() {
 	for _, collaborator := range collaborators {
 		fmt.Println(collaborator)
 	}
+
+	git.CreateTemplate(collaborators...)
 }
