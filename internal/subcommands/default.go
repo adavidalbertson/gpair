@@ -12,17 +12,20 @@ import (
 
 func init() {
 	flag.BoolVar(&internal.Help, "help", false, "Display usage information")
-	flag.BoolVar(&internal.Help, "\nh", false, "Display usage information (shorthand)")
+	flag.BoolVar(&internal.Help, "h", false, "\nDisplay usage information (shorthand)")
 	flag.BoolVar(&internal.Verbose, "verbose", false, "Enable verbose output")
-	flag.BoolVar(&internal.Verbose, "\nv", false, "Enable verbose output (shorthand)")
+	flag.BoolVar(&internal.Verbose, "v", false, "\nEnable verbose output (shorthand)")
 	oldUsage := flag.Usage
 	flag.Usage = func() {
+		fmt.Println()
 		fmt.Println("gpair is a utility that makes it easier to share credit for collaboration using git.")
 		fmt.Println("It stores the contact info of your frequent collaborators and outputs a 'Co-author' clause for your git commit messages.")
 		fmt.Println("Run `gpair ALIAS` to retrieve the 'Co-Author' clause for the collaborator saved under 'ALIAS'.")
-		fmt.Println("For multiple collaborators, run `gpair ALIAS_1 [ALIAS_2 ...]`")
-		fmt.Println("To add a collaborator, use the 'add' subcommand. For information on using 'add', run `gpair add -h`.")
+		fmt.Println("For multiple collaborators, run 'gpair ALIAS_1 [ALIAS_2 ...]'")
+		fmt.Println("To add a collaborator, use the 'add' subcommand. For information on using 'add', run 'gpair add -h'.")
+		fmt.Println()
 		oldUsage()
+		fmt.Println()
 	}
 }
 
