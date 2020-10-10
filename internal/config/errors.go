@@ -15,22 +15,3 @@ func ErrMissingCollaborator(missing []string) error {
 
 	return fmt.Errorf("No collaborators exist for aliases '%s'", strings.Join(missing, "', '"))
 }
-
-// ErrSaveFailure is returned when the config file could not be created
-type ErrSaveFailure struct {
-	Path string
-	Err  error
-}
-
-func (err *ErrSaveFailure) Error() string {
-	return fmt.Sprintf("failed to create config file at %s", err.Path)
-}
-
-func (err *ErrSaveFailure) Unwrap() error {
-	return err.Err
-}
-
-// NewErrSaveFailure returns an instance of ErrSaveFailure
-func NewErrSaveFailure(err error, path string) *ErrSaveFailure {
-	return &ErrSaveFailure{Err: err, Path: path}
-}

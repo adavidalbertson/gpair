@@ -1,5 +1,11 @@
 package config
 
+import (
+	"github.com/adavidalbertson/gpair/internal"
+	"encoding/json"
+	"github.com/adavidalbertson/gpair/internal/store"
+)
+
 // Config is the persisted config for gpair, including a dictionary of collaborators
 type Config struct {
 	Collaborators map[string]Collaborator `json:"collaborators"`
@@ -20,14 +26,57 @@ type Configurator interface {
 }
 
 type configurator struct {
-	store
+	store store.Store
 }
 
 // NewConfigurator returns a configurator that persists config to disk
-func NewConfigurator() Configurator {
-	return configurator{
-		&fileStore{},
+func NewConfigurator() (Configurator, error) {
+	store, err := store.NewFileStore("config.json", store.HOME, ".gpair")
+	if err != nil {
+		return nil, err
 	}
+
+	return configurator{store}, nil
+}
+
+func (c configurator) load() (Config, error) {
+	jsonBytes, err := c.store.Read()
+	if err != nil {
+		return NewConfig(), err
+	}
+
+	if len(jsonBytes) == 0 {
+		return NewConfig(), nil
+	}
+
+	var config Config
+	// Since the config file is expected to be small, Marshal/Unmarshal should be adequate
+	err = json.Unmarshal(jsonBytes, &config)
+	if err != nil {
+		err = c.store.Write([]byte{})
+		if err != nil {
+			return NewConfig(), err
+		}
+		path := c.store.GetPath()
+		internal.PrintVerbose("Failed to parse config file at %s. Starting a new config file. Original has been moved to %s.bak", path, path)
+		return NewConfig(), nil
+	}
+
+	return config, nil
+}
+
+func (c configurator) save(config Config) error {
+	jsonBytes, err := json.Marshal(config)
+	if err != nil {
+		return err
+	}
+
+	err = c.store.Write(jsonBytes)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (c configurator) GetCollaborators(aliases ...string) ([]Collaborator, error) {

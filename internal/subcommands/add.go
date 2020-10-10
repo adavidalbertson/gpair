@@ -1,6 +1,7 @@
 package subcommands
 
 import (
+	"github.com/adavidalbertson/gpair/internal/store"
 	"flag"
 	"fmt"
 	"os"
@@ -104,10 +105,15 @@ func Add() {
 		panic(err)
 	}
 
-	err = add(alias, name, email, config.NewConfigurator())
+	configurator, err := config.NewConfigurator()
 	if err != nil {
-		if esf, ok := err.(*config.ErrSaveFailure); ok {
-			fmt.Printf("Failed to create config file at %s. Make sure appropriate permissions are set.\n", esf.Path)
+		panic(err)
+	}
+
+	err = add(alias, name, email, configurator)
+	if err != nil {
+		if efi, ok := err.(*store.ErrFileInaccessible); ok {
+			fmt.Printf("Failed to create config file at %s. Make sure appropriate permissions are set.\n", efi.Path)
 			os.Exit(0)
 		}
 

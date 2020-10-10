@@ -1,19 +1,8 @@
 package config
 
-// inMemoryStore is an implementation of store that simply holds the config in memory
-// For testing purposes only
-type inMemoryStore struct {
-	config Config
-}
-
-func (ims *inMemoryStore) load() (Config, error) {
-	return ims.config, nil
-}
-
-func (ims *inMemoryStore) save(conf Config) error {
-	ims.config = conf
-	return nil
-}
+import (
+	"github.com/adavidalbertson/gpair/internal/store"
+)
 
 // MockConfigurator is a configurator that allows direct access to its Config
 // For testing purposes only
@@ -26,7 +15,7 @@ type MockConfigurator struct {
 func NewMockConfigurator(conf Config) MockConfigurator {
 	return MockConfigurator{
 		configurator{
-			&inMemoryStore{config: conf},
+			&store.InMemoryStore{},
 		},
 	}
 }

@@ -36,8 +36,13 @@ func Pair() {
 		os.Exit(0)
 	}
 
+	configurator, err := config.NewConfigurator()
+	if err != nil {
+		panic(err)
+	}
+
 	aliases := os.Args[1:]
-	collaborators, err := config.NewConfigurator().GetCollaborators(aliases...)
+	collaborators, err := configurator.GetCollaborators(aliases...)
 	if err != nil {
 		fmt.Println(err.Error())
 	}

@@ -49,7 +49,12 @@ func Remove() {
 		panic(err)
 	}
 
-	deleted, err := config.NewConfigurator().DeleteCollaborators(aliases...)
+	configurator, err := config.NewConfigurator()
+	if err != nil {
+		panic(err)
+	}
+
+	deleted, err := configurator.DeleteCollaborators(aliases...)
 	if err != nil {
 		fmt.Println(err.Error())
 	}
