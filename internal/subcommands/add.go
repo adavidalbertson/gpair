@@ -91,7 +91,7 @@ func add(alias, name, email string, configurator config.Configurator) error {
 		return fmt.Errorf("name and email are required arguments")
 	}
 
-	addCollaborator := config.Collaborator{Name: name, Email: email}
+	addCollaborator := config.NewCollaborator(name, email)
 	err := configurator.AddCollaborator(alias, addCollaborator)
 	if err != nil {
 		return err

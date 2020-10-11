@@ -80,7 +80,7 @@ func TestAdd(t *testing.T) {
 
 			if err == nil {
 				wantConfig := config.NewConfig()
-				wantConfig.Collaborators[tt.args.alias] = config.Collaborator{Name: tt.args.name, Email: tt.args.email}
+				wantConfig.Collaborators[tt.args.alias] = config.NewCollaborator(tt.args.name, tt.args.email)
 
 				gotConfig := configurator.GetConfig()
 

@@ -13,3 +13,8 @@ type Collaborator struct {
 func (c Collaborator) String() string {
 	return fmt.Sprintf("Co-authored-by: %s <%s>", c.Name, c.Email)
 }
+
+// NewCollaborator returns a new collaborator with the given properties
+func NewCollaborator(name, email string) Collaborator {
+	return Collaborator{Name: name, Email: email}
+}
