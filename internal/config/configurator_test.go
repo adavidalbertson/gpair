@@ -27,7 +27,6 @@ func mockStore() store.Store {
 type readErrorStore struct {
 	store.Store
 }
-
 func (res readErrorStore) Read() ([]byte, error) {
 	return nil, errors.New("fake read error")
 }
@@ -38,12 +37,24 @@ func readErrorMockStore() store.Store {
 type writeErrorStore struct {
 	store.Store
 }
-
 func (wes writeErrorStore) Write([]byte) error {
 	return errors.New("fake write error")
 }
 func writeErrorMockStore() store.Store {
 	return writeErrorStore{mockStore()}
+}
+
+type corruptedReadStore struct {
+	store.Store
+}
+func (crs corruptedReadStore) Read() ([]byte, error) {
+	return []byte("This is not a config.json!"), nil
+}
+func corruptedReadMockStore() store.Store {
+	return corruptedReadStore{mockStore()}
+}
+func corruptedReadWriteErrorMockStore() store.Store {
+	return corruptedReadStore{writeErrorMockStore()}
 }
 
 func populateConfig() Config {
@@ -213,7 +224,14 @@ func Test_configurator_load(t *testing.T) {
 		wantErr bool
 	}{
 		{"happy path", mockStore(), populateConfig(), false},
+		{"empty file", &store.InMemoryStore{}, NewConfig(), false},
 		{"read error", readErrorMockStore(), NewConfig(), true},
+
+		// If load fails json parsing, it returns an empty config and no error, and writes an empty config
+		{"corrupted file", corruptedReadMockStore(), NewConfig(), false},
+
+		// If the write of the empty config fails, *then* it returns an error
+		{"corrupted file and write error", corruptedReadWriteErrorMockStore(), NewConfig(), true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
