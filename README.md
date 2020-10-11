@@ -10,7 +10,7 @@ gpair ALIAS
 ```
 
 This will append a `Co-authored-by` clause to the default commit message template for the repository.
-The coauthor will appear on all commits to the repository until you run `gpair unpair`.
+The coauthor will appear on all commits to the repository until you run `gpair solo`.
 The coauthor's information is saved so you can run `gpair ALIAS` again at any time to resume pairing.
 
 To switch to a different coauthor, simply run `gpair ALIAS_2`, where `ALIAS_2` is the alias of another coauthor.
@@ -53,13 +53,13 @@ gpair remove ALIAS
 
 This will remove the coauthor from `gpair`'s list.
 
-Note that if you have run `gpair` with this coauthor, they will still appear on commit messages until you run `gpair unpair`.
+Note that if you have run `gpair` with this coauthor, they will still appear on commit messages until you run `gpair solo`.
 
-### `unpair`
-Use the `unpair` subcommand to stop pairing with a coauthor(s).
+### `solo`
+Use the `solo` subcommand to end a pairing session.
 
 ```
-gpair unpair
+gpair solo
 ```
 
 This will reset the default commit message for the repository.
@@ -82,6 +82,6 @@ This file is created the first time `gpair` runs.
 When you run `gpair ALIAS` in a repo, it creates a file `~/.gpair/REPO_NAME-template.txt` containing the coauthor's information, and sets git's `commit.template` config property to point to this file.
 Subsequent uses of `gpair` will overwrite the template file.
 
-`gpair unpair` simply unsets git's `commit.template` property.
+`gpair solo` simply unsets git's `commit.template` property.
 
 `gpair` aims to be nondestructive, so if your `commit.template` is set to a file *not* created by `gpair`, it will exit rather than overwrite the property.

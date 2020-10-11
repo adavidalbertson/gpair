@@ -27,7 +27,7 @@ func init() {
 		fmt.Println("For multiple collaborators, run 'gpair ALIAS_1 [ALIAS_2 ...]'")
 		fmt.Println("To add a collaborator, use the 'add' subcommand. For more information, run 'gpair add -h'.")
 		fmt.Println("To remove a collaborator, use the 'remove' subcommand. For more information, run 'gpair remove -h'")
-		fmt.Println("To stop pairing, run the 'gpair unpair' subcommand. For more information, run 'gpair unpair -h'")
+		fmt.Println("To stop pairing, run the 'gpair solo' subcommand. For more information, run 'gpair solo -h'")
 		fmt.Println()
 		oldUsage()
 		fmt.Println()
