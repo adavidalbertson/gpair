@@ -1,10 +1,12 @@
 package subcommands
 
 import (
-	"github.com/adavidalbertson/gpair/internal/git"
 	"flag"
 	"fmt"
 	"os"
+
+	"github.com/adavidalbertson/gpair/internal/git"
+	"github.com/adavidalbertson/gpair/internal/store"
 
 	"github.com/adavidalbertson/gpair/internal/config"
 
@@ -51,9 +53,47 @@ func Pair() {
 		fmt.Println(err.Error())
 	}
 
-	for _, collaborator := range collaborators {
-		fmt.Println(collaborator)
+	if len(collaborators) == 0 {
+		os.Exit(0)
 	}
 
-	git.CreateTemplate(collaborators...)
+	if !git.IsInstalled() {
+		fmt.Println("git needs to be installed for gpair to work.")
+		os.Exit(0)
+	}
+
+	isCustomTemplate, err := git.IsCustomTemplate()
+	if err != nil {
+		panic(err)
+	}
+
+	if isCustomTemplate {
+		fmt.Println("It looks like you are using a custom git commit template already.")
+		os.Exit(0)
+	}
+
+	repoName, err := git.GetRepoName()
+	if err != nil {
+		fmt.Println("gpair must be run inside a git repository")
+		os.Exit(0)
+	}
+
+	templatePath, err := git.CreateTemplate(repoName, collaborators...)
+	if err != nil {
+		if efi, ok := err.(*store.ErrFileInaccessible); ok {
+			fmt.Printf("Failed to create template file at %s. Make sure appropriate permissions are set.\n", efi.Path)
+			os.Exit(0)
+		}
+
+		panic(err)
+	}
+
+	err = git.SetTemplate(templatePath)
+	if err != nil {
+		panic(err)
+	}
+
+	for _, collaborator := range collaborators {
+		internal.PrintVerbose(collaborator.String())
+	}
 }

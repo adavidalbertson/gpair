@@ -6,8 +6,8 @@ import (
 )
 
 // CreateTemplate saves a git commit template containing the paired collaborators
-func CreateTemplate(coauthors ...config.Collaborator) (string, error) {
-	store, err := store.NewFileStore("template.txt", store.HOME, ".gpair")
+func CreateTemplate(repoName string, coauthors ...config.Collaborator) (string, error) {
+	store, err := store.NewFileStore(repoName + "-template.txt", store.HOME, ".gpair")
 	if err != nil {
 		return "", err
 	}
