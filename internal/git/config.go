@@ -54,7 +54,18 @@ func SetTemplate(templatePath string) error {
 // UnsetTemplate unsets the current repo's git config commit.template
 func UnsetTemplate() error {
 	cmd := exec.Command("git", "config", "--unset", "commit.template")
-	return cmd.Run()
+	err := cmd.Run()
+	if err != nil {
+		if exitErr, ok := err.(*exec.ExitError); ok {
+			if exitErr.ExitCode() == 5 {
+				// git config exits with code 5 if the config does not exist
+				// or if multiple config lines match
+				return nil
+			}
+		}
+	}
+	
+	return err
 }
 
 // SetTemplateGlobal sets the global git config commit.template to the provided filepath

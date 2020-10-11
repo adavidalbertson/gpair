@@ -20,6 +20,9 @@ func main() {
 	case subcommands.RemoveCmd.Name():
 		subcommands.Remove()
 
+	case subcommands.UnpairCmd.Name():
+		subcommands.Unpair()
+
 	default:
 		subcommands.Pair()
 	}
