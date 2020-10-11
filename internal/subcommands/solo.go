@@ -42,6 +42,27 @@ func Solo() {
 		os.Exit(0)
 	}
 
+	if !git.IsInstalled() {
+		fmt.Println("git needs to be installed for gpair to work.")
+		os.Exit(0)
+	}
+
+	isCustomTemplate, err := git.IsCustomTemplate()
+	if err != nil {
+		panic(err)
+	}
+
+	if isCustomTemplate {
+		fmt.Println("It looks like you are using a custom git commit template already.")
+		os.Exit(0)
+	}
+
+	_, err = git.GetRepoName()
+	if err != nil {
+		fmt.Println("gpair must be run inside a git repository")
+		os.Exit(0)
+	}
+
 	err = git.UnsetTemplate()
 	if err != nil {
 		panic(err)
