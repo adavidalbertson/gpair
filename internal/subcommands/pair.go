@@ -21,11 +21,13 @@ func init() {
 	oldUsage := flag.Usage
 	flag.Usage = func() {
 		fmt.Println()
-		fmt.Println("gpair is a utility that makes it easier to share credit for collaboration using git.")
-		fmt.Println("It stores the contact info of your frequent collaborators and outputs a 'Co-author' clause for your git commit messages.")
+		fmt.Println("gpair is a utility that makes it easier to share credit for collaboration on GitHub.")
+		fmt.Println("It stores the contact info of your frequent collaborators and adds a 'Co-author' clause to your default commit message.")
 		fmt.Println("Run `gpair ALIAS` to retrieve the 'Co-Author' clause for the collaborator saved under 'ALIAS'.")
 		fmt.Println("For multiple collaborators, run 'gpair ALIAS_1 [ALIAS_2 ...]'")
-		fmt.Println("To add a collaborator, use the 'add' subcommand. For information on using 'add', run 'gpair add -h'.")
+		fmt.Println("To add a collaborator, use the 'add' subcommand. For more information, run 'gpair add -h'.")
+		fmt.Println("To remove a collaborator, use the 'remove' subcommand. For more information, run 'gpair remove -h'")
+		fmt.Println("To stop pairing, run the 'gpair unpair' subcommand. For more information, run 'gpair unpair -h'")
 		fmt.Println()
 		oldUsage()
 		fmt.Println()
