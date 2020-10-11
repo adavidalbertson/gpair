@@ -37,7 +37,7 @@ func init() {
 func Pair() {
 	flag.Parse()
 
-	if len(os.Args) < 2 || internal.Help {
+	if internal.Help {
 		flag.Usage()
 		os.Exit(0)
 	}
@@ -47,7 +47,7 @@ func Pair() {
 		panic(err)
 	}
 
-	aliases := os.Args[1:]
+	aliases := flag.Args()
 	collaborators, err := configurator.GetCollaborators(aliases...)
 	if err != nil {
 		fmt.Println(err.Error())
