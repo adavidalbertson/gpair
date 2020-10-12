@@ -54,6 +54,13 @@ func setUp() {
 	_, err = f.WriteString(existingFileContents)
 	check(err)
 
+	fb, err := os.Create(existingFilePath + ".bak")
+	check(err)
+	defer fb.Close()
+
+	_, err = fb.WriteString(existingFileContents)
+	check(err)
+
 	forbiddenFilePath = filepath.Join(existingDirPath, forbiddenFile)
 	ff, err := os.Create(forbiddenFilePath)
 	check(err)
@@ -62,11 +69,21 @@ func setUp() {
 	_, err = ff.WriteString(forbiddenFileContents)
 	check(err)
 
-	err = os.Chmod(forbiddenFilePath, 0000)
+	err = ff.Chmod(0000)
+	check(err)
+
+	ffb, err := os.Create(forbiddenFilePath + ".bak")
+	check(err)
+	defer ffb.Close()
+
+	_, err = ffb.WriteString(forbiddenFileContents)
+	check(err)
+
+	err = ffb.Chmod(0000)
 	check(err)
 
 	forbiddenDirPath = filepath.Join(testingPath, forbiddenDir)
-	err = os.MkdirAll(forbiddenDirPath, 000)
+	err = os.MkdirAll(forbiddenDirPath, 0000)
 	check(err)
 }
 
@@ -190,7 +207,7 @@ func Test_fileStore_Write(t *testing.T) {
 		{"existing file", fields{existingFilePath}, args{[]byte("new file contents")}, false},
 		{"new file", fields{filepath.Join(existingDirPath, "new_file.txt")}, args{[]byte("new file contents")}, false},
 		{"new dir", fields{filepath.Join(testingPath, "new_dir", "new_file.txt")}, args{[]byte("new file contents")}, true},
-		
+
 		// The file is overwritten with 0700 permissions, so no error should be thrown
 		{"forbidden file", fields{forbiddenFilePath}, args{[]byte("new file contents")}, false},
 		{"forbidden dir", fields{filepath.Join(forbiddenDirPath, "new_file.txt")}, args{[]byte("new file contents")}, true},
@@ -202,6 +219,68 @@ func Test_fileStore_Write(t *testing.T) {
 			}
 			if err := fs.Write(tt.args.jsonBytes); (err != nil) != tt.wantErr {
 				t.Errorf("fileStore.Write() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func Test_fileStore_createBackup(t *testing.T) {
+
+	setUp()
+
+	type fields struct {
+		path string
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		wantErr bool
+	}{
+		{"existing file", fields{existingFilePath}, false},
+
+		// If the file does not exist, createBackup returns nil
+		{"new file", fields{filepath.Join(existingDirPath, "new_file.txt")}, false},
+		{"new dir", fields{filepath.Join(testingPath, "new_dir", "new_file.txt")}, false},
+		{"forbidden file", fields{forbiddenDirPath}, true},
+		{"forbidden dir", fields{filepath.Join(forbiddenDirPath, "new_file.txt")}, true},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fs := &fileStore{
+				path: tt.fields.path,
+			}
+			if err := fs.createBackup(); (err != nil) != tt.wantErr {
+				t.Errorf("fileStore.createBackup() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func Test_fileStore_restoreBackup(t *testing.T) {
+
+	setUp()
+
+	type fields struct {
+		path string
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		wantErr bool
+	}{
+		{"existing file", fields{existingFilePath}, false},
+		{"new file", fields{filepath.Join(existingDirPath, "new_file.txt")}, true},
+		{"new dir", fields{filepath.Join(testingPath, "new_dir", "new_file.txt")}, true},
+		{"forbidden file", fields{forbiddenFilePath}, false},
+		{"forbidden dir", fields{filepath.Join(forbiddenDirPath, "new_file.txt")}, true},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fs := &fileStore{
+				path: tt.fields.path,
+			}
+			if err := fs.restoreBackup(); (err != nil) != tt.wantErr {
+				t.Errorf("fileStore.restoreBackup() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}
