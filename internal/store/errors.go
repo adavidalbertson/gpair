@@ -9,7 +9,7 @@ type ErrFileInaccessible struct {
 }
 
 func (err *ErrFileInaccessible) Error() string {
-	return fmt.Sprintf("failed to create config file at %s", err.Path)
+	return fmt.Sprintf("failed to access file at %s", err.Path)
 }
 
 func (err *ErrFileInaccessible) Unwrap() error {
