@@ -1,4 +1,8 @@
 # `gpair`
+[![Actions Status](https://github.com/adavidalbertson/gpair/workflows/go%20build/badge.svg)](https://github.com/adavidalbertson/gpair/actions)
+[![Actions Status](https://github.com/adavidalbertson/gpair/workflows/go%20test/badge.svg)](https://github.com/adavidalbertson/gpair/actions)
+[![Actions Status](https://github.com/adavidalbertson/gpair/workflows/golangci-lint/badge.svg)](https://github.com/adavidalbertson/gpair/actions)
+
 `gpair` is a simple utility that makes it easier to share credit for collaboration on GitHub.
 It stores the contact info of your frequent collaborators and adds a `Co-authored-by` clause to your default commit message.
 
