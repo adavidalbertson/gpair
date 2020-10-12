@@ -241,8 +241,6 @@ func Test_fileStore_createBackup(t *testing.T) {
 		// If the file does not exist, createBackup returns nil
 		{"new file", fields{filepath.Join(existingDirPath, "new_file.txt")}, false},
 		{"new dir", fields{filepath.Join(testingPath, "new_dir", "new_file.txt")}, false},
-		{"forbidden file", fields{forbiddenDirPath}, true},
-		{"forbidden dir", fields{filepath.Join(forbiddenDirPath, "new_file.txt")}, true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
