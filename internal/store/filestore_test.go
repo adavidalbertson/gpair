@@ -87,8 +87,8 @@ func TestNewFileStore(t *testing.T) {
 		{"new file", args{"new_file.txt", ROOT, []string{testingPath, existingDir}}, false},
 		{"new dir", args{"new_file.txt", ROOT, []string{testingPath, "new_dir"}}, false},
 		{"existing file", args{existingFile, ROOT, []string{testingPath, existingDir}}, false},
-		// {"forbidden file", args{forbiddenFile, ROOT, []string{existingDirPath}}, true},
-		// {"forbidden dir", args{"new_file.txt", ROOT, []string{forbiddenDirPath}}, true},
+		{"forbidden file", args{forbiddenFile, ROOT, []string{existingDirPath}}, true},
+		{"forbidden dir", args{"new_file.txt", ROOT, []string{forbiddenDirPath}}, true},
 		{"invalid dir type", args{"new_file.txt", -1, []string{existingDirPath}}, true},
 	}
 	for _, tt := range tests {
@@ -149,7 +149,10 @@ func Test_fileStore_Read(t *testing.T) {
 	}{
 		{"existing file", fields{existingFilePath}, []byte(existingFileContents), false},
 		{"new file", fields{filepath.Join(existingDirPath, "new_file.txt")}, nil, false},
-		// {"forbidden file", fields{forbiddenFilePath}, nil, true},
+
+		// If the file fails to open, e.g. because of permissions, store creates a backup of it
+		// and returns nil bytes and nil error
+		{"forbidden file", fields{forbiddenFilePath}, nil, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

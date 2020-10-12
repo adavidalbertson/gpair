@@ -42,23 +42,35 @@ func NewFileStore(filename string, startDirType int, dirPath ...string) (Store, 
 
 	for _, dir := range dirPath {
 		path = filepath.Join(path, dir)
-		if _, err = os.Stat(path); os.IsNotExist(err) {
+		stats, err := os.Stat(path)
+		if os.IsNotExist(err) {
 			internal.PrintVerbose("Creating new directory at %s", path)
 			err := os.Mkdir(path, 0700)
 			if err != nil {
 				return nil, NewErrFileInaccessible(err, path)
 			}
+		} else if err != nil {
+			return nil, NewErrFileInaccessible(err, path)
+		} else if (stats.Mode().Perm() & 0700) != 0700 {
+			// Must have read, write, and execute permission to use directory
+			return nil, NewErrFileInaccessible(os.ErrPermission, path)
 		}
 	}
 
 	path = filepath.Join(path, filename)
-	if _, err = os.Stat(path); os.IsNotExist(err) {
+	stats, err := os.Stat(path)
+	if os.IsNotExist(err) {
 		internal.PrintVerbose("Creating new file at %s", path)
 		file, err := os.Create(path)
 		if err != nil {
 			return nil, NewErrFileInaccessible(err, path)
 		}
 		defer file.Close()
+	} else if err != nil {
+		return nil, NewErrFileInaccessible(err, path)
+	} else if (stats.Mode().Perm() & 0600) != 0600 {
+		// Must have read and write permission to use file
+		return nil, NewErrFileInaccessible(os.ErrPermission, path)
 	}
 
 	fs.path = path
