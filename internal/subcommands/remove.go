@@ -62,7 +62,9 @@ func Remove() {
 		fmt.Println(err.Error())
 	}
 
-	if len(deleted) > 0 {
+	if len(deleted) == 1 {
+		fmt.Printf("Successfully deleted collaborator '%s'\n", deleted[0])
+	} else if len(deleted) > 1 {
 		fmt.Printf("Successfully deleted collaborators '%s'\n", strings.Join(deleted, "', '"))
 	}
 }
