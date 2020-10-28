@@ -69,8 +69,8 @@ gpair solo
 This will reset the default commit message for the repository.
 
 ## Installation
-To install `gpair`, run:
 
+### Go Get
 ```
 go get github.com/adavidalbertson/gpair
 ```
@@ -78,6 +78,11 @@ go get github.com/adavidalbertson/gpair
 If your `$GOPATH` is on your path, that's all you need to do!
 
 Of course, you'll need Go and Git installed already.
+
+### Homebrew
+```
+brew install adavidalbertson/gpair/gpair
+```
 
 ## How it works
 `gpair` stores coauthor information and any applicable configuration settings in `~/.gpair/config.json`.
