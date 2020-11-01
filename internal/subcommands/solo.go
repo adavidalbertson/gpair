@@ -17,6 +17,8 @@ func init() {
 	SoloCmd.BoolVar(&internal.Help, "h", false, "\nDisplay usage information (shorthand)")
 	SoloCmd.BoolVar(&internal.Verbose, "verbose", false, "Enable verbose output")
 	SoloCmd.BoolVar(&internal.Verbose, "v", false, "\nEnable verbose output (shorthand)")
+	SoloCmd.BoolVar(&globalMode, "global", false, "\nSolo in global mode")
+	SoloCmd.BoolVar(&globalMode, "g", false, "\nSolo in global mode (shorthand)")
 	oldUsage := SoloCmd.Usage
 	SoloCmd.Usage = func() {
 		fmt.Println()
@@ -57,16 +59,22 @@ func Solo() {
 		os.Exit(0)
 	}
 
+	if !globalMode {
 	_, err = git.GetRepoName()
-	if err != nil {
-		fmt.Println("gpair must be run inside a git repository")
-		os.Exit(0)
+		if err != nil {
+			fmt.Println("gpair must be run inside a git repository unless in global mode")
+			os.Exit(0)
+		}
 	}
 
-	err = git.UnsetTemplate()
+	err = git.UnsetTemplate(globalMode)
 	if err != nil {
 		panic(err)
 	}
 
 	internal.PrintVerbose("Successfully unpaired!")
+
+	if globalMode {
+		internal.PrintVerbose("Global config will be overridden by per-repo config")
+	}
 }

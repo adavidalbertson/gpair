@@ -21,6 +21,9 @@ To switch to a different coauthor, simply run `gpair ALIAS_2`, where `ALIAS_2` i
 
 You can even credit multiple coauthors by running `gpair ALIAS_1 [ALIAS_2 ...]`
 
+You can use the `--global` or `-g` flag to pair in global mode, for instance if you are working on multiple repos with the same coauthor.
+Note that as with any git config, the local repo setting will override the global setting if present.
+
 There are some additional flags you can pass in for more information on `gpair` or any subcommand:
 
 * `-h` or `-help`: Display usage information
@@ -67,6 +70,8 @@ gpair solo
 ```
 
 This will reset the default commit message for the repository.
+
+You can use the `--global` or `-g` flag to unpair if you previously used `gpair` in global mode.
 
 ## Installation
 

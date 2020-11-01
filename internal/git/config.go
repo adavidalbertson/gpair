@@ -46,14 +46,14 @@ func IsCustomTemplate() (bool, error) {
 }
 
 // SetTemplate sets the current repo's git config commit.template to the provided filepath
-func SetTemplate(templatePath string) error {
-	cmd := exec.Command("git", "config", "commit.template", templatePath)
+func SetTemplate(templatePath string, global bool) error {
+	cmd := exec.Command("git", gitConfig(global, "commit.template", templatePath)...)
 	return cmd.Run()
 }
 
 // UnsetTemplate unsets the current repo's git config commit.template
-func UnsetTemplate() error {
-	cmd := exec.Command("git", "config", "--unset", "commit.template")
+func UnsetTemplate(global bool) error {
+	cmd := exec.Command("git", gitConfig(global, "--unset", "commit.template")...)
 	err := cmd.Run()
 	if err != nil {
 		if exitErr, ok := err.(*exec.ExitError); ok {
@@ -68,14 +68,10 @@ func UnsetTemplate() error {
 	return err
 }
 
-// SetTemplateGlobal sets the global git config commit.template to the provided filepath
-func SetTemplateGlobal(templatePath string) error {
-	cmd := exec.Command("git", "config", "--global", "commit.template", templatePath)
-	return cmd.Run()
-}
-
-// UnsetTemplateGlobal unsets the global git config commit.template
-func UnsetTemplateGlobal() error {
-	cmd := exec.Command("git", "config", "--global", "--unset", "commit.template")
-	return cmd.Run()
+func gitConfig(global bool, args ...string) []string {
+	cmdString := []string{"config"}
+	if global {
+		cmdString = append(cmdString, "--global")
+	}
+	return append(cmdString, args...)
 }

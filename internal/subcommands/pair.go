@@ -13,11 +13,15 @@ import (
 	"github.com/adavidalbertson/gpair/internal"
 )
 
+var globalMode bool
+
 func init() {
 	flag.BoolVar(&internal.Help, "help", false, "Display usage information")
 	flag.BoolVar(&internal.Help, "h", false, "\nDisplay usage information (shorthand)")
 	flag.BoolVar(&internal.Verbose, "verbose", false, "Enable verbose output")
 	flag.BoolVar(&internal.Verbose, "v", false, "\nEnable verbose output (shorthand)")
+	flag.BoolVar(&globalMode, "global", false, "\nPair in global mode")
+	flag.BoolVar(&globalMode, "g", false, "\nPair in global mode (shorthand)")
 	oldUsage := flag.Usage
 	flag.Usage = func() {
 		fmt.Println()
@@ -74,10 +78,15 @@ func Pair() {
 		os.Exit(0)
 	}
 
-	repoName, err := git.GetRepoName()
-	if err != nil {
-		fmt.Println("gpair must be run inside a git repository")
-		os.Exit(0)
+	var repoName string
+	if globalMode {
+		repoName = "gpair-global"
+	} else {
+		repoName, err = git.GetRepoName()
+		if err != nil {
+			fmt.Println("gpair must be run inside a git repository unless in global mode")
+			os.Exit(0)
+		}
 	}
 
 	templatePath, err := git.CreateTemplate(repoName, collaborators...)
@@ -90,12 +99,16 @@ func Pair() {
 		panic(err)
 	}
 
-	err = git.SetTemplate(templatePath)
+	err = git.SetTemplate(templatePath, globalMode)
 	if err != nil {
 		panic(err)
 	}
 
 	for _, collaborator := range collaborators {
 		internal.PrintVerbose(collaborator.String())
+	}
+
+	if globalMode {
+		internal.PrintVerbose("Global config will be overridden by per-repo config")
 	}
 }
