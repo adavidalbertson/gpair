@@ -23,6 +23,9 @@ func main() {
 	case subcommands.SoloCmd.Name():
 		subcommands.Solo()
 
+	case subcommands.ListCmd.Name():
+		subcommands.List()
+
 	default:
 		subcommands.Pair()
 	}

@@ -73,6 +73,10 @@ This will reset the default commit message for the repository.
 
 You can use the `--global` or `-g` flag to unpair if you previously used `gpair` in global mode.
 
+### `list`
+Use the `list` subcommand to print a list of available coauthors.
+This is useful if you forget who you've added or what alias you gave them.
+
 ## Installation
 
 ### Go Get

@@ -59,9 +59,9 @@ func corruptedReadWriteErrorMockStore() store.Store {
 
 func populateConfig() Config {
 	startingConfig := NewConfig()
-	startingConfig.Collaborators["a1"] = NewCollaborator("name1", "email1")
-	startingConfig.Collaborators["a2"] = NewCollaborator("name2", "email2")
-	startingConfig.Collaborators["a3"] = NewCollaborator("name3", "email3")
+	startingConfig.Collaborators["a1"] = NewCollaborator("a1", "name1", "email1")
+	startingConfig.Collaborators["a2"] = NewCollaborator("a2", "name2", "email2")
+	startingConfig.Collaborators["a3"] = NewCollaborator("a3", "name3", "email3")
 
 	return startingConfig
 }
@@ -74,11 +74,11 @@ func Test_configurator_GetCollaborators(t *testing.T) {
 		want    []Collaborator
 		wantErr bool
 	}{
-		{"one alias", []string{"a2"}, mockStore(), []Collaborator{NewCollaborator("name2", "email2")}, false},
-		{"two alias", []string{"a3", "a1"}, mockStore(), []Collaborator{NewCollaborator("name3", "email3"), NewCollaborator("name1", "email1")}, false},
+		{"one alias", []string{"a2"}, mockStore(), []Collaborator{NewCollaborator("a2", "name2", "email2")}, false},
+		{"two alias", []string{"a3", "a1"}, mockStore(), []Collaborator{NewCollaborator("a3", "name3", "email3"), NewCollaborator("a1", "name1", "email1")}, false},
 		{"nonexistent alias", []string{"a4"}, mockStore(), nil, true},
 		{"nonexistent aliases", []string{"a4", "a5"}, mockStore(), nil, true},
-		{"empty args", []string{}, mockStore(), nil, false},
+		{"empty args", []string{}, mockStore(), []Collaborator{NewCollaborator("a1", "name1", "email1"), NewCollaborator("a2", "name2", "email2"), NewCollaborator("a3", "name3", "email3")}, false},
 		{"read error", []string{"a1"}, readErrorMockStore(), nil, true},
 	}
 	for _, tt := range tests {
@@ -100,25 +100,21 @@ func Test_configurator_GetCollaborators(t *testing.T) {
 
 func Test_configurator_AddCollaborator(t *testing.T) {
 
-	type args struct {
-		alias        string
-		collaborator Collaborator
-	}
 	type testCase struct {
 		name    string
-		args    args
+		collaborator Collaborator
 		store   store.Store
 		want    Config
 		wantErr bool
 	}
 
-	newTestCase := func(name, alias string, collab Collaborator, store store.Store, wantErr bool) testCase {
+	newTestCase := func(name string, collab Collaborator, store store.Store, wantErr bool) testCase {
 		wantConfig := populateConfig()
-		wantConfig.Collaborators[alias] = collab
+		wantConfig.Collaborators[collab.Alias] = collab
 
 		return testCase{
 			name:    name,
-			args:    args{alias, collab},
+			collaborator: collab,
 			store:   store,
 			want:    wantConfig,
 			wantErr: wantErr,
@@ -126,14 +122,14 @@ func Test_configurator_AddCollaborator(t *testing.T) {
 	}
 
 	tests := []testCase{
-		newTestCase("add new", "a4", NewCollaborator("name4", "email4"), mockStore(), false),
-		newTestCase("add existing", "a2", NewCollaborator("name4", "email4"), mockStore(), false),
+		newTestCase("add new", NewCollaborator("a4", "name4", "email4"), mockStore(), false),
+		newTestCase("add existing", NewCollaborator("a2", "name4", "email4"), mockStore(), false),
 
 		// If loading fails, AddCollaborator should return an error, and load should return an empty config
-		{"add read error", args{"a4", NewCollaborator("name4", "email4")}, readErrorMockStore(), NewConfig(), true},
+		{"add read error", NewCollaborator("a4", "name4", "email4"), readErrorMockStore(), NewConfig(), true},
 
 		// If saving fails, AddCollaborator should return an error, and the config should be unaltered
-		{"add write error", args{"a4", NewCollaborator("name4", "email4")}, writeErrorMockStore(), populateConfig(), true},
+		{"add write error", NewCollaborator("a4", "name4", "email4"), writeErrorMockStore(), populateConfig(), true},
 	}
 
 	for _, tt := range tests {
@@ -141,7 +137,7 @@ func Test_configurator_AddCollaborator(t *testing.T) {
 			c := configurator{
 				store: tt.store,
 			}
-			if err := c.AddCollaborator(tt.args.alias, tt.args.collaborator); (err != nil) != tt.wantErr {
+			if err := c.AddCollaborator(tt.collaborator); (err != nil) != tt.wantErr {
 				t.Errorf("configurator.AddCollaborator() error = %v, wantErr %v", err, tt.wantErr)
 			}
 

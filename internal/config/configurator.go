@@ -10,7 +10,7 @@ import (
 // Configurator is an abstraction that allows operations to a persisted config
 type Configurator interface {
 	GetCollaborators(aliases ...string) ([]Collaborator, error)
-	AddCollaborator(alias string, collaborator Collaborator) error
+	AddCollaborator(collaborator Collaborator) error
 	DeleteCollaborators(aliases ...string) ([]string, error)
 }
 
@@ -50,6 +50,11 @@ func (c configurator) load() (Config, error) {
 		internal.PrintVerbose("Failed to parse config file at %s. Starting a new config file. Original has been moved to %s.bak", path, path)
 		return NewConfig(), nil
 	}
+	
+	for alias, collab := range config.Collaborators {
+		collab.Alias = alias
+		config.Collaborators[alias] = collab
+	}
 
 	return config, nil
 }
@@ -77,6 +82,12 @@ func (c configurator) GetCollaborators(aliases ...string) ([]Collaborator, error
 	var collaborators []Collaborator
 	var missing []string
 
+	if len(aliases) == 0 {
+		for _, collab := range config.Collaborators {
+			collaborators = append(collaborators, collab)
+		}
+	}
+
 	for _, alias := range aliases {
 		if collaborator, ok := config.Collaborators[alias]; ok {
 			collaborators = append(collaborators, collaborator)
@@ -88,13 +99,17 @@ func (c configurator) GetCollaborators(aliases ...string) ([]Collaborator, error
 	return collaborators, ErrMissingCollaborator(missing)
 }
 
-func (c configurator) AddCollaborator(alias string, collaborator Collaborator) error {
+func (c configurator) AddCollaborator(collab Collaborator) error {
 	config, err := c.load()
 	if err != nil {
 		return err
 	}
 
-	config.Collaborators[alias] = collaborator
+	if len(collab.Alias) == 0 {
+		collab.Alias = collab.Name
+	}
+
+	config.Collaborators[collab.Alias] = collab
 
 	err = c.save(config)
 	if err != nil {
